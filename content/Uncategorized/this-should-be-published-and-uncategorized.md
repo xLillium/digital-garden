@@ -1,6 +1,6 @@
 ---
 publish: true
-title: "{{title}}"
+title: This should be published and uncategorized
 description: Short SEO description
 tags: []
 created:
