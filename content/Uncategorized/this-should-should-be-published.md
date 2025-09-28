@@ -82,7 +82,7 @@ _You **can** combine them_
 
 ## Images
 
-  ![[Pasted image 20250928180844.png]]
+  ![Pasted image 20250928180844.png](/attachments/Pasted-image-20250928180844.png)
 
 
 ## Links
@@ -107,9 +107,10 @@ You may be using [Markdown Live Preview](https://markdownlivepreview.com/).
 
 ## Tables
 
-| Hello |       |
-| ----- | ----- |
-|       | World |
+| **Hello** |       |     |
+| --------- | ----- | --- |
+|           | World |     |
+|           |       |     |
 
 
 | Left columns  | Right columns |

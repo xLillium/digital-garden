@@ -93,6 +93,56 @@ export_published() {
   done
 }
 
+fix_attachment_links() {
+  echo "→ Fixing attachment links in published notes"
+
+  find "$QZ_CONTENT" -name "*.md" -type f | while read -r note; do
+    # Skip homepage
+    [[ "$(basename "$note")" == "index.md" ]] && continue
+
+    # Fix Obsidian-style attachment links - convert ![[filename]] to ![](path)
+    sed -i 's/!\[\[\([^]]*\.\(png\|jpg\|jpeg\|gif\|svg\|pdf\|mp4\|mov\)\)\]\]/![\1](\/attachments\/\1)/g' "$note"
+
+    # Fix relative paths (corrected - using \2 instead of \3)
+    sed -i 's|!\[\([^]]*\)\](\.\.\/00 - System\/Attachments\/\([^)]*\))|![\1](/attachments/\2)|g' "$note"
+    sed -i 's|!\[\([^]]*\)\](00 - System\/Attachments\/\([^)]*\))|![\1](/attachments/\2)|g' "$note"
+  done
+}
+
+copy_attachments() {
+  echo "→ Copying attachments referenced by published notes"
+
+  cd "$VAULT"
+  attachments_dir="00 - System/Attachments"
+
+  if [[ ! -d "$attachments_dir" ]]; then
+    echo "   • No attachments directory found"
+    return
+  fi
+
+  mkdir -p "$QZ_CONTENT/attachments"
+
+  # Find all attachment references and copy them with URL-safe names
+  find "$QZ_CONTENT" -name "*.md" -exec cat {} \; | \
+  grep -o 'Pasted image [0-9]*\.png\|[a-zA-Z0-9_-]*\.\(png\|jpg\|jpeg\|gif\|svg\|pdf\)' | \
+  sort -u | while read -r filename; do
+    if [[ -f "$attachments_dir/$filename" ]]; then
+      # Create URL-safe version of filename (replace spaces with dashes)
+      safe_filename=$(echo "$filename" | sed 's/ /-/g')
+
+      # Copy with the URL-safe name
+      cp "$attachments_dir/$filename" "$QZ_CONTENT/attachments/$safe_filename"
+      echo "   • Copied: $filename → $safe_filename"
+
+      # Update all references in the published notes to use the safe filename
+      find "$QZ_CONTENT" -name "*.md" -exec sed -i "s|/attachments/$filename|/attachments/$safe_filename|g" {} \;
+    fi
+  done
+
+  file_count=$(ls "$QZ_CONTENT/attachments" 2>/dev/null | wc -l || echo "0")
+  echo "   • Total attachments copied: $file_count"
+}
+
 serve_quartz() {
   echo "→ Serving Quartz locally"
   cd "$QZ_ROOT"
@@ -124,6 +174,8 @@ EOF
 cleanup_content
 generate_homepage
 export_published
+fix_attachment_links    # Fix links first
+copy_attachments
 
 case "$1" in
   serve)   serve_quartz ;;
