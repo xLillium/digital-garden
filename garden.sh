@@ -15,7 +15,6 @@ cleanup_content() {
 generate_homepage() {
   echo "→ Generating homepage from vault"
   cd "$VAULT"
-  # Find the single file with quartz-homepage: true
   homepage_file=$(grep -rlZ "^quartz-homepage: true" --include="*.md" . | tr -d '\0' | head -n1)
   if [[ -n "$homepage_file" ]]; then
     rel="${homepage_file#./}"
@@ -56,7 +55,7 @@ serve_quartz() {
 sync_quartz() {
   echo "→ Syncing Quartz with GitHub Pages"
   cd "$QZ_ROOT"
-  npx quartz sync --no-pull
+  npx quartz sync
 }
 
 ### Usage
